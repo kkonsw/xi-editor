@@ -109,6 +109,7 @@ impl Plugin for LspPlugin {
         let path = view.get_path();
         let view_id = view.get_id();
 
+
         // TODO: Use Language Idenitifier assigned by core when the
         // implementation is settled
         if let Some(language_id) = self.get_language_for_view(view) {
@@ -134,6 +135,7 @@ impl Plugin for LspPlugin {
                 let document_uri = Url::from_file_path(path).unwrap();
 
                 if !ls_client.is_initialized {
+                    info!("Initializing LSP client...");
                     ls_client.send_initialize(workspace_root_uri, move |ls_client, result| {
                         if let Ok(result) = result {
                             let init_result: InitializeResult =
@@ -143,6 +145,7 @@ impl Plugin for LspPlugin {
 
                             ls_client.server_capabilities = Some(init_result.capabilities);
                             ls_client.is_initialized = true;
+                            ls_client.send_did_initialize();
                             ls_client.send_did_open(view_id, document_uri, document_text);
                         }
                     });

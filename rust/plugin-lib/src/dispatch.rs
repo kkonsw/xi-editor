@@ -197,7 +197,9 @@ impl<'a, P: Plugin> RpcHandler for Dispatcher<'a, P> {
             }
             DidSave { view_id, path } => self.do_did_save(view_id, path),
             ConfigChanged { view_id, changes } => self.do_config_changed(view_id, &changes),
-            NewBuffer { buffer_info } => self.do_new_buffer(ctx, buffer_info),
+            // NewBuffer { buffer_info } => self.do_new_buffer(ctx, buffer_info),
+            // FIXME: removed, it was opening the same buffer twice, investigate
+            NewBuffer { buffer_info } => (),
             DidClose { view_id } => self.do_close(view_id),
             Shutdown(..) => self.do_shutdown(),
             TracingConfig { enabled } => self.do_tracing_config(enabled),

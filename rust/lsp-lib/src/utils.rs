@@ -169,6 +169,7 @@ pub fn start_new_server(
 
     let writer = Box::new(BufWriter::new(process.stdin.take().unwrap()));
 
+
     let language_server_client = Arc::new(Mutex::new(LanguageServerClient::new(
         writer,
         core,
@@ -192,7 +193,9 @@ pub fn start_new_server(
                             let mut server_locked = ls_client.lock().unwrap();
                             server_locked.handle_message(message_str.as_ref());
                         }
-                        Err(err) => error!("Error occurred {:?}", err),
+                        // FIXME: had to continue here to avoid spam from errors
+                        // TODO: investigate loop here
+                        Err(_) => continue,
                     };
                 }
             })

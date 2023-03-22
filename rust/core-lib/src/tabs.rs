@@ -520,13 +520,13 @@ impl CoreState {
         }
 
         if let Some(manifest) = self.plugins.get_named(plugin) {
-            //TODO: lots of races possible here, we need to keep track of
-            //pending launches.
-            start_plugin_process(
-                manifest,
-                self.next_plugin_id(),
-                self.self_ref.as_ref().unwrap().clone(),
-            );
+            // TODO: lots of races possible here, we need to keep track of pending launches.
+            // FIXME: disabled starting plugin process here
+            // start_plugin_process(
+            //     manifest,
+            //     self.next_plugin_id(),
+            //     self.self_ref.as_ref().unwrap().clone(),
+            // );
         } else {
             warn!("no plugin found with name '{}'", plugin);
         }

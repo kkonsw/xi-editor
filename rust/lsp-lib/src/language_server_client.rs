@@ -169,7 +169,7 @@ impl LanguageServerClient {
             Err(err) => panic!("Encoding Error {:?}", err),
         };
 
-        trace!("Sending RPC: {:?}", rpc);
+        info!("Sending RPC: {:?}", rpc);
         self.write(rpc.as_ref());
     }
 
@@ -201,7 +201,13 @@ impl LanguageServerClient {
         };
 
         let params = Params::from(serde_json::to_value(init_params).unwrap());
+
         self.send_request("initialize", params, Box::new(on_init));
+    }
+
+    pub fn send_did_initialize(&mut self) {
+        let params = Params::from(serde_json::to_value("").unwrap());
+        self.send_notification("initialized", params);
     }
 
     /// Send textDocument/didOpen Notification to the Language Server
@@ -273,6 +279,7 @@ impl LanguageServerClient {
         };
 
         let params = Params::from(serde_json::to_value(text_document_position_params).unwrap());
+
         self.send_request("textDocument/hover", params, Box::new(on_result))
     }
 }

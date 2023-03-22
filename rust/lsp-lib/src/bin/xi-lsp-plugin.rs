@@ -59,7 +59,7 @@ fn main() {
             // Install instructions here: https://github.com/rust-lang-nursery/rls
             "rust" : {
                 "language_name": "Rust",
-                "start_command": "rls",
+                "start_command": "rust-analyzer",
                 "start_arguments": [],
                 "extensions": ["rs"],
                 "supports_single_file": false,
