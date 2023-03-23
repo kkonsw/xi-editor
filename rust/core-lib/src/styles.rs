@@ -408,7 +408,7 @@ impl ThemeStyleMap {
             if p.exists() {
                 return true;
             }
-            fs::DirBuilder::new().create(&p).is_ok()
+            fs::DirBuilder::new().create(p).is_ok()
         } else {
             false
         }

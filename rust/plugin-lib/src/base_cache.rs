@@ -364,8 +364,7 @@ impl ChunkCache {
             let split_idx = self
                 .line_offsets
                 .binary_search(&new_offsets[0])
-                .err()
-                .expect("new index cannot be occupied");
+                .expect_err("new index cannot be occupied");
 
             self.line_offsets =
                 [&self.line_offsets[..split_idx], &new_offsets, &self.line_offsets[split_idx..]]

@@ -237,7 +237,7 @@ impl<'a> EventContext<'a> {
                 ed.update_spans(view, plugin, start, len, spans, rev)
             }),
             Edit { edit } => self.with_editor(|ed, _, _, _| ed.apply_plugin_edit(edit)),
-            Alert { msg } => self.client.alert(&msg),
+            Alert { msg } => self.client.alert(msg),
             AddStatusItem { key, value, alignment } => {
                 let plugin_name = &self.plugins.iter().find(|p| p.id == plugin).unwrap().name;
                 self.client.add_status_item(self.view_id, plugin_name, &key, &value, &alignment);
@@ -320,7 +320,7 @@ impl<'a> EventContext<'a> {
         let undo_group = ed.get_active_undo_group();
         //TODO: we want to just put EditType on the wire, but don't want
         //to update the plugin lib quite yet.
-        let v: Value = serde_json::to_value(&ed.get_edit_type()).unwrap();
+        let v: Value = serde_json::to_value(ed.get_edit_type()).unwrap();
         let edit_type_str = v.as_str().unwrap().to_string();
 
         let update = PluginUpdate::new(

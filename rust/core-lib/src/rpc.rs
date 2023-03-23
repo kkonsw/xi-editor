@@ -574,8 +574,8 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for EditCommand<T> {
 
         // if params are empty, remove them
         let remove_params = match v.get("params") {
-            Some(&Value::Object(ref obj)) => obj.is_empty() && T::deserialize(v.clone()).is_err(),
-            Some(&Value::Array(ref arr)) => arr.is_empty() && T::deserialize(v.clone()).is_err(),
+            Some(Value::Object(obj)) => obj.is_empty() && T::deserialize(v.clone()).is_err(),
+            Some(Value::Array(arr)) => arr.is_empty() && T::deserialize(v.clone()).is_err(),
             Some(_) => {
                 return Err(de::Error::custom(
                     "'params' field, if present, must be object or array.",

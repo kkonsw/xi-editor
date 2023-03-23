@@ -318,7 +318,7 @@ impl CoreState {
             ModifyUserConfig { domain, changes } => self.do_modify_user_config(domain, changes),
             SetTheme { theme_name } => self.do_set_theme(&theme_name),
             SaveTrace { destination, frontend_samples } => {
-                self.save_trace(&destination, frontend_samples)
+                self.save_trace(destination, frontend_samples)
             }
             Plugin(cmd) => match cmd {
                 PN::Start { view_id, plugin_name } => self.do_start_plugin(view_id, &plugin_name),
@@ -519,7 +519,7 @@ impl CoreState {
             return;
         }
 
-        if let Some(manifest) = self.plugins.get_named(plugin) {
+        if let Some(_manifest) = self.plugins.get_named(plugin) {
             // TODO: lots of races possible here, we need to keep track of pending launches.
             // FIXME: disabled starting plugin process here
             // start_plugin_process(

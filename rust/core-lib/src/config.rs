@@ -500,9 +500,9 @@ impl ConfigManager {
         }
         match path.file_stem().and_then(|s| s.to_str()) {
             Some("preferences") => Some(ConfigDomain::General),
-            Some(name) if self.languages.language_for_name(&name).is_some() => {
+            Some(name) if self.languages.language_for_name(name).is_some() => {
                 let lang =
-                    self.languages.language_for_name(&name).map(|lang| lang.name.clone()).unwrap();
+                    self.languages.language_for_name(name).map(|lang| lang.name.clone()).unwrap();
                 Some(ConfigDomain::Language(lang))
             }
             //TODO: plugin configs
@@ -725,7 +725,7 @@ pub(crate) fn init_config_dir(dir: &Path) -> io::Result<()> {
 /// Attempts to load a config from a file. The config's domain is determined
 /// by the file name.
 pub(crate) fn try_load_from_file(path: &Path) -> Result<Table, ConfigError> {
-    let mut file = fs::File::open(&path)?;
+    let mut file = fs::File::open(path)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
     table_from_toml_str(&contents).map_err(|e| ConfigError::Parse(path.to_owned(), e))

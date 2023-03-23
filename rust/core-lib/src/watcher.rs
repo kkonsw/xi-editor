@@ -412,7 +412,7 @@ mod tests {
         fn rename(&self, a: &str, b: &str) {
             let path_a = self.mkpath(a);
             let path_b = self.mkpath(b);
-            fs::rename(&path_a, &path_b).expect("failed to rename file or directory");
+            fs::rename(path_a, path_b).expect("failed to rename file or directory");
         }
 
         fn write(&self, p: &str) {

@@ -456,7 +456,7 @@ impl<'a> PluginState {
         };
 
         // if the previous line is a comment, the indent level should not be increased
-        if line.trim().starts_with(&comment_str.trim()) {
+        if line.trim().starts_with(comment_str.trim()) {
             Ok(false)
         } else {
             Ok(metadata.increase_indent(line))
@@ -591,7 +591,7 @@ impl<'a> PluginState {
         for num in line_range {
             let offset = view.offset_of_line(num).unwrap();
             let line = view.get_line(num).unwrap();
-            if line.trim().starts_with(&comment_str) {
+            if line.trim().starts_with(comment_str) {
                 continue;
             }
 
@@ -610,7 +610,7 @@ impl<'a> PluginState {
         for num in lines {
             let offset = view.offset_of_line(num).unwrap();
             let line = view.get_line(num).unwrap();
-            let (comment_start, len) = match line.find(&comment_str) {
+            let (comment_start, len) = match line.find(comment_str) {
                 Some(off) => (offset + off, comment_str.len()),
                 None if line.trim() == comment_str.trim() => (offset, comment_str.trim().len()),
                 None => continue,

@@ -160,7 +160,7 @@ impl LanguageServerClient {
         self.pending.insert(self.next_id, completion);
         self.next_id += 1;
 
-        self.send_rpc(&to_value(&request).unwrap());
+        self.send_rpc(&to_value(request).unwrap());
     }
 
     fn send_rpc(&mut self, value: &Value) {
@@ -175,7 +175,7 @@ impl LanguageServerClient {
 
     pub fn send_notification(&mut self, method: &str, params: Params) {
         let notification = JsonRpc::notification_with_params(method, params);
-        let res = to_value(&notification).unwrap();
+        let res = to_value(notification).unwrap();
         self.send_rpc(&res);
     }
 }

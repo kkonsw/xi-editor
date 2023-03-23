@@ -735,12 +735,7 @@ impl EditType {
 }
 
 fn last_selection_region(regions: &[SelRegion]) -> Option<&SelRegion> {
-    for region in regions.iter().rev() {
-        if !region.is_caret() {
-            return Some(region);
-        }
-    }
-    None
+    regions.iter().rev().find(|&region| !region.is_caret())
 }
 
 /// Counts the number of lines in the string, not including any trailing newline.
