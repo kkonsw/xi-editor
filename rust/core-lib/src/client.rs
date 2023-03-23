@@ -228,6 +228,17 @@ impl Client {
         )
     }
 
+    pub fn show_completions(&self, view_id: ViewId, request_id: usize, result: Vec<String>) {
+        self.0.send_rpc_notification(
+            "show_completions",
+            &json!({
+                "view_id": view_id,
+                "request_id": request_id,
+                "result": result,
+            }),
+        )
+    }
+
     pub fn schedule_idle(&self, token: usize) {
         self.0.schedule_idle(token)
     }

@@ -111,6 +111,7 @@ pub enum HostNotification {
     NewBuffer { buffer_info: Vec<PluginBufferInfo> },
     DidClose { view_id: ViewId },
     GetHover { view_id: ViewId, request_id: usize, position: usize },
+    GetCompletions { view_id: ViewId, request_id: usize, position: usize },
     Shutdown(EmptyStruct),
     TracingConfig { enabled: bool },
     LanguageChanged { view_id: ViewId, new_lang: LanguageId },
@@ -218,6 +219,10 @@ pub enum PluginNotification {
         request_id: usize,
         result: Result<Hover, RemoteError>,
     },
+    ShowCompletions {
+        request_id: usize,
+        result: Result<Completions, RemoteError>,
+    },
     UpdateAnnotations {
         start: usize,
         len: usize,
@@ -242,6 +247,12 @@ pub struct Range {
 pub struct Hover {
     pub content: String,
     pub range: Option<Range>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
+pub struct Completions {
+    pub content: Vec<String>,
 }
 
 /// Common wrapper for plugin-originating RPCs.

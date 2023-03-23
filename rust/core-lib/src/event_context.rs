@@ -26,6 +26,7 @@ use xi_rope::{Cursor, Interval, LinesMetric, Rope, RopeDelta};
 use xi_rpc::{Error as RpcError, RemoteError};
 use xi_trace::trace_block;
 
+use crate::plugin_rpc::Completions;
 use crate::plugins::rpc::{
     ClientPluginInfo, Hover, PluginBufferInfo, PluginNotification, PluginRequest, PluginUpdate,
 };
@@ -211,6 +212,9 @@ impl<'a> EventContext<'a> {
                 let mut recorder = self.recorder.borrow_mut();
                 recorder.clear(&recording_name);
             }
+            SpecialEvent::RequestCompletions { request_id, position } => {
+                self.do_request_completions(request_id, position)
+            }
         }
     }
 
@@ -252,6 +256,7 @@ impl<'a> EventContext<'a> {
             }
             RemoveStatusItem { key } => self.client.remove_status_item(self.view_id, &key),
             ShowHover { request_id, result } => self.do_show_hover(request_id, result),
+            ShowCompletions { request_id, result } => self.do_show_completions(request_id, result),
         };
         self.after_edit(&plugin.to_string());
         self.render_if_needed();
@@ -688,6 +693,12 @@ impl<'a> EventContext<'a> {
         }
     }
 
+    fn do_request_completions(&mut self, request_id: usize, position: Option<ClientPosition>) {
+        if let Some(position) = self.get_resolved_position(position) {
+            self.with_each_plugin(|p| p.get_completions(self.view_id, request_id, position))
+        }
+    }
+
     fn do_show_hover(&mut self, request_id: usize, hover: Result<Hover, RemoteError>) {
         match hover {
             Ok(hover) => {
@@ -695,6 +706,15 @@ impl<'a> EventContext<'a> {
                 self.client.show_hover(self.view_id, request_id, hover.content)
             }
             Err(err) => warn!("Hover Response from Client Error {:?}", err),
+        }
+    }
+
+    fn do_show_completions(&mut self, request_id: usize, completions: Result<Completions, RemoteError>) {
+        match completions {
+            Ok(completions) => {
+                self.client.show_completions(self.view_id, request_id, completions.content)
+            }
+            Err(err) => warn!("Completions Response from Client Error {:?}", err),
         }
     }
 

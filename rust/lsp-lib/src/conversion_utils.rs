@@ -17,7 +17,10 @@
 
 use crate::lsp_types::*;
 use crate::types::LanguageResponseError;
-use xi_plugin_lib::{Cache, Error as PluginLibError, Hover as CoreHover, Range as CoreRange, View};
+use xi_plugin_lib::{
+    Cache, Completions as CoreCompletions, Error as PluginLibError, Hover as CoreHover,
+    Range as CoreRange, View,
+};
 
 pub(crate) fn marked_string_to_string(marked_string: &MarkedString) -> String {
     match *marked_string {
@@ -111,5 +114,19 @@ pub(crate) fn core_hover_from_hover<C: Cache>(
             Some(range) => Some(core_range_from_range(view, range)?),
             None => None,
         },
+    })
+}
+
+pub(crate) fn core_completions_from_completions<C: Cache>(
+    _view: &mut View<C>,
+    completions: CompletionResponse,
+) -> Result<CoreCompletions, LanguageResponseError> {
+    Ok(CoreCompletions {
+        content: match completions {
+            CompletionResponse::Array(_) => todo!(),
+            CompletionResponse::List(list) => {
+                list.items.into_iter().map(|c| c.label).collect()
+            },
+        }
     })
 }

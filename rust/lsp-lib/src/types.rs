@@ -166,4 +166,5 @@ impl From<LanguageResponseError> for RemoteError {
 #[derive(Debug)]
 pub enum LspResponse {
     Hover(Result<Hover, LanguageResponseError>),
+    CompletionResponse(Result<CompletionResponse, LanguageResponseError>),
 }

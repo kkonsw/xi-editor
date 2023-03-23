@@ -180,15 +180,58 @@ impl Plugin for LspPlugin {
         });
     }
 
+    fn get_completions(
+        &mut self,
+        view: &mut View<Self::Cache>,
+        request_id: usize,
+        position: usize,
+    ) {
+        let view_id = view.get_id();
+        let position_ls = get_position_of_offset(view, position);
+
+        self.with_language_server_for_view(view, |ls_client| match position_ls {
+            Ok(position) => {
+                ls_client.request_completion(view_id, position, move |ls_client, result| {
+                    let res = result
+                        .map_err(|e| LanguageResponseError::LanguageServerError(format!("{:?}", e)))
+                        .and_then(|h| {
+                            let completion: Option<CompletionResponse> =
+                                serde_json::from_value(h).unwrap();
+                            completion.ok_or(LanguageResponseError::NullResponse)
+                        });
+
+                    ls_client
+                        .result_queue
+                        .push_result(request_id, LspResponse::CompletionResponse(res));
+                    ls_client.core.schedule_idle(view_id);
+                })
+            }
+            Err(err) => {
+                ls_client
+                    .result_queue
+                    .push_result(request_id, LspResponse::CompletionResponse(Err(err.into())));
+                ls_client.core.schedule_idle(view_id);
+            }
+        });
+    }
+
     fn idle(&mut self, view: &mut View<Self::Cache>) {
         let result = self.result_queue.pop_result();
-        if let Some((request_id, reponse)) = result {
-            match reponse {
+        if let Some((request_id, response)) = result {
+            match response {
                 LspResponse::Hover(res) => {
                     let res =
                         res.and_then(|h| core_hover_from_hover(view, h)).map_err(|e| e.into());
                     self.with_language_server_for_view(view, |ls_client| {
                         ls_client.core.display_hover(view.get_id(), request_id, &res)
+                    });
+                }
+                LspResponse::CompletionResponse(res) => {
+                    let res = res
+                        .and_then(|h| core_completions_from_completions(view, h))
+                        .map_err(|e| e.into());
+                    self.with_language_server_for_view(view, |ls_client| {
+                        ls_client.core.show_completions(view.get_id(), request_id, &res)
                     });
                 }
             }

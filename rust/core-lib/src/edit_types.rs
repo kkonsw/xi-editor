@@ -85,6 +85,7 @@ pub(crate) enum SpecialEvent {
     Resize(Size),
     RequestLines(LineRange),
     RequestHover { request_id: usize, position: Option<Position> },
+    RequestCompletions { request_id: usize, position: Option<Position> },
     DebugToggleComment,
     Reindent,
     ToggleRecording(Option<String>),
@@ -298,6 +299,7 @@ impl From<EditNotification> for EventDomain {
             PlayRecording { recording_name } => SpecialEvent::PlayRecording(recording_name).into(),
             ClearRecording { recording_name } => SpecialEvent::ClearRecording(recording_name).into(),
             CollapseSelections => ViewEvent::CollapseSelections.into(),
+            RequestCompletions { request_id, position } => SpecialEvent::RequestCompletions { request_id, position }.into(),
         }
     }
 }

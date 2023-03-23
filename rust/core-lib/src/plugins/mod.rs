@@ -149,6 +149,17 @@ impl Plugin {
         )
     }
 
+    pub fn get_completions(&self, view_id: ViewId, request_id: usize, position: usize) {
+        self.peer.send_rpc_notification(
+            "get_completions",
+            &json!({
+                "view_id": view_id,
+                "request_id": request_id,
+                "position": position,
+            }),
+        )
+    }
+
     pub fn dispatch_command(&self, view_id: ViewId, method: &str, params: &Value) {
         self.peer.send_rpc_notification(
             "custom_command",

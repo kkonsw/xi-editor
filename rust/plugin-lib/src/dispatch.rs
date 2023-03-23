@@ -141,6 +141,11 @@ impl<'a, P: 'a + Plugin> Dispatcher<'a, P> {
         self.plugin.get_hover(v, request_id, position)
     }
 
+    fn do_get_completions(&mut self, view_id: ViewId, request_id: usize, position: usize) {
+        let v = bail!(self.views.get_mut(&view_id), "get_completions", self.pid, view_id);
+        self.plugin.get_completions(v, request_id, position)
+    }
+
     fn do_tracing_config(&mut self, enabled: bool) {
         if enabled {
             xi_trace::enable_tracing();
@@ -205,6 +210,9 @@ impl<'a, P: Plugin> RpcHandler for Dispatcher<'a, P> {
             TracingConfig { enabled } => self.do_tracing_config(enabled),
             GetHover { view_id, request_id, position } => {
                 self.do_get_hover(view_id, request_id, position)
+            },
+            GetCompletions { view_id, request_id, position} => {
+                self.do_get_completions(view_id, request_id, position)
             }
             LanguageChanged { view_id, new_lang } => self.do_language_changed(view_id, new_lang),
             CustomCommand { view_id, method, params } => {

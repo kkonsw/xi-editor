@@ -282,6 +282,19 @@ impl LanguageServerClient {
 
         self.send_request("textDocument/hover", params, Box::new(on_result))
     }
+
+    pub fn request_completion<CB>(&mut self, view_id: ViewId, position: Position, on_result: CB)
+    where
+        CB: 'static + Send + FnOnce(&mut LanguageServerClient, Result<Value, Error>),
+    {
+        let text_document_position_params = TextDocumentPositionParams {
+            text_document: TextDocumentIdentifier { uri: self.opened_documents[&view_id].clone() },
+            position,
+        };
+
+        let params = Params::from(serde_json::to_value(text_document_position_params).unwrap());
+        self.send_request("textDocument/completion", params, Box::new(on_result))
+    }
 }
 
 /// Helper methods to query the capabilities of the Language Server before making
