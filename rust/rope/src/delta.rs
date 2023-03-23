@@ -73,7 +73,7 @@ impl<N: NodeInfo> Delta<N> {
             i = end;
             el = iter.next();
         }
-        if let Some(&DeltaElement::Insert(ref n)) = el {
+        if let Some(DeltaElement::Insert(n)) = el {
             el = iter.next();
             if el.is_none() {
                 if i == self.base_len {

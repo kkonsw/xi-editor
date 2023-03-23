@@ -117,8 +117,8 @@ pub enum CountMatcher {
 impl CountMatcher {
     fn matches(self, seg: &Segment) -> bool {
         match self {
-            CountMatcher::Zero => (seg.count == 0),
-            CountMatcher::NonZero => (seg.count != 0),
+            CountMatcher::Zero => seg.count == 0,
+            CountMatcher::NonZero => seg.count != 0,
             CountMatcher::All => true,
         }
     }

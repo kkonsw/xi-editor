@@ -287,7 +287,7 @@ impl<N: NodeInfo> Node<N> {
     fn is_ok_child(&self) -> bool {
         match self.0.val {
             NodeVal::Leaf(ref l) => l.is_ok_child(),
-            NodeVal::Internal(ref nodes) => (nodes.len() >= MIN_CHILDREN),
+            NodeVal::Internal(ref nodes) => nodes.len() >= MIN_CHILDREN,
         }
     }
 

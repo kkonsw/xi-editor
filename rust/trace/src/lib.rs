@@ -213,7 +213,7 @@ impl Config {
     }
 
     /// The default amount of storage to allocate for tracing.  Currently 1 MB.
-    pub fn default() -> Self {
+    pub fn default_config() -> Self {
         // 1 MB
         Self::with_limit_bytes(1 * 1024 * 1024)
     }
@@ -646,7 +646,7 @@ impl Trace {
 
     #[inline]
     pub fn enable(&self) {
-        self.enable_config(Config::default());
+        self.enable_config(Config::default_config());
     }
 
     pub fn enable_config(&self, config: Config) {
@@ -823,7 +823,7 @@ impl Trace {
             return Err(chrome_trace_dump::Error::already_exists());
         }
 
-        let mut trace_file = fs::File::create(&path)?;
+        let mut trace_file = fs::File::create(path)?;
 
         chrome_trace_dump::serialize(&traces, &mut trace_file)
     }
