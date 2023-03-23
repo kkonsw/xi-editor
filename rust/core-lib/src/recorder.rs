@@ -260,8 +260,7 @@ mod tests {
         }
 
         recorder.play(&recording_name, |_| {
-            // We shouldn't have any events to play since nothing was saved!
-            assert!(false);
+            panic!("We shouldn't have any events to play since nothing was saved!");
         });
     }
 

@@ -1117,7 +1117,7 @@ mod test {
     #[test]
     fn node_is_empty() {
         let text = Rope::from(String::new());
-        assert_eq!(text.is_empty(), true);
+        assert!(text.is_empty());
     }
 
     #[test]

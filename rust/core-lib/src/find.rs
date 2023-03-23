@@ -507,11 +507,11 @@ mod tests {
     fn find_multiline_regex() {
         let mut find = Find::new(1);
         find.set_find("a", true, true, false);
-        assert_eq!(find.is_multiline_regex(), false);
+        assert!(!find.is_multiline_regex());
         find.set_find(".*", true, true, false);
-        assert_eq!(find.is_multiline_regex(), false);
+        assert!(!find.is_multiline_regex());
         find.set_find("\\n", true, true, false);
-        assert_eq!(find.is_multiline_regex(), true);
+        assert!(find.is_multiline_regex());
     }
 
     #[test]

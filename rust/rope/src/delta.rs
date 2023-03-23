@@ -831,23 +831,23 @@ mod tests {
     #[test]
     fn is_simple_delete() {
         let d = Delta::simple_edit(10..12, Rope::from("+"), TEST_STR.len());
-        assert_eq!(false, d.is_simple_delete());
+        assert!(!d.is_simple_delete());
 
         let d = Delta::simple_edit(Interval::new(0, 0), Rope::from(""), 0);
-        assert_eq!(false, d.is_simple_delete());
+        assert!(!d.is_simple_delete());
 
         let d = Delta::simple_edit(Interval::new(10, 11), Rope::from(""), TEST_STR.len());
-        assert_eq!(true, d.is_simple_delete());
+        assert!(d.is_simple_delete());
 
         let mut builder = Builder::<RopeInfo>::new(10);
         builder.delete(Interval::new(0, 2));
         builder.delete(Interval::new(4, 6));
         let d = builder.build();
-        assert_eq!(false, d.is_simple_delete());
+        assert!(!d.is_simple_delete());
 
         let builder = Builder::<RopeInfo>::new(10);
         let d = builder.build();
-        assert_eq!(false, d.is_simple_delete());
+        assert!(!d.is_simple_delete());
 
         let delta = Delta {
             els: vec![
@@ -864,13 +864,13 @@ mod tests {
     #[test]
     fn is_identity() {
         let d = Delta::simple_edit(10..12, Rope::from("+"), TEST_STR.len());
-        assert_eq!(false, d.is_identity());
+        assert!(!d.is_identity());
 
         let d = Delta::simple_edit(0..0, Rope::from(""), TEST_STR.len());
-        assert_eq!(true, d.is_identity());
+        assert!(d.is_identity());
 
         let d = Delta::simple_edit(0..0, Rope::from(""), 0);
-        assert_eq!(true, d.is_identity());
+        assert!(d.is_identity());
     }
 
     #[test]
