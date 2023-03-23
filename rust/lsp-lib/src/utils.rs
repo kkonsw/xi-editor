@@ -169,7 +169,6 @@ pub fn start_new_server(
 
     let writer = Box::new(BufWriter::new(process.stdin.take().unwrap()));
 
-
     let language_server_client = Arc::new(Mutex::new(LanguageServerClient::new(
         writer,
         core,

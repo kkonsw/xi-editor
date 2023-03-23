@@ -109,7 +109,6 @@ impl Plugin for LspPlugin {
         let path = view.get_path();
         let view_id = view.get_id();
 
-
         // TODO: Use Language Idenitifier assigned by core when the
         // implementation is settled
         if let Some(language_id) = self.get_language_for_view(view) {

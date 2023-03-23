@@ -400,11 +400,11 @@ pub enum EditNotification {
     MoveDown,
     MoveDownAndModifySelection,
     MoveLeft,
-    // synoynm for `MoveLeft`
+    // synonym for `MoveLeft`
     MoveBackward,
     MoveLeftAndModifySelection,
     MoveRight,
-    // synoynm for `MoveRight`
+    // synonym for `MoveRight`
     MoveForward,
     MoveRightAndModifySelection,
     MoveWordLeft,
