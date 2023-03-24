@@ -210,8 +210,8 @@ impl<'a, P: Plugin> RpcHandler for Dispatcher<'a, P> {
             TracingConfig { enabled } => self.do_tracing_config(enabled),
             GetHover { view_id, request_id, position } => {
                 self.do_get_hover(view_id, request_id, position)
-            },
-            GetCompletions { view_id, request_id, position} => {
+            }
+            GetCompletions { view_id, request_id, position } => {
                 self.do_get_completions(view_id, request_id, position)
             }
             LanguageChanged { view_id, new_lang } => self.do_language_changed(view_id, new_lang),

@@ -49,7 +49,7 @@ pub use crate::base_cache::ChunkCache;
 pub use crate::core_proxy::CoreProxy;
 pub use crate::state_cache::StateCache;
 pub use crate::view::View;
-pub use crate::xi_core::plugin_rpc::{Hover, Range, Completions};
+pub use crate::xi_core::plugin_rpc::{Completions, Hover, Range};
 
 /// Abstracts getting data from the peer. Mainly exists for mocking in tests.
 pub trait DataSource {
@@ -190,7 +190,13 @@ pub trait Plugin {
     fn get_hover(&mut self, view: &mut View<Self::Cache>, request_id: usize, position: usize) {}
 
     #[allow(unused_variables)]
-    fn get_completions(&mut self, view: &mut View<Self::Cache>, request_id: usize, position: usize) {}
+    fn get_completions(
+        &mut self,
+        view: &mut View<Self::Cache>,
+        request_id: usize,
+        position: usize,
+    ) {
+    }
 }
 
 #[derive(Debug)]

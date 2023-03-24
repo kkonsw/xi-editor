@@ -124,9 +124,7 @@ pub(crate) fn core_completions_from_completions<C: Cache>(
     Ok(CoreCompletions {
         content: match completions {
             CompletionResponse::Array(_) => todo!(),
-            CompletionResponse::List(list) => {
-                list.items.into_iter().map(|c| c.label).collect()
-            },
-        }
+            CompletionResponse::List(list) => list.items.into_iter().map(|c| c.label).collect(),
+        },
     })
 }

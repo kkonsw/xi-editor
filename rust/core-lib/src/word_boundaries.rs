@@ -186,14 +186,14 @@ fn classify_boundary_initial(prev: WordProperty, next: WordProperty) -> WordBoun
 }
 
 #[derive(Copy, Clone)]
-enum WordProperty {
+pub enum WordProperty {
     Lf,
     Space,
     Punctuation,
     Other, // includes letters and all of non-ascii unicode
 }
 
-fn get_word_property(codepoint: char) -> WordProperty {
+pub fn get_word_property(codepoint: char) -> WordProperty {
     if codepoint <= ' ' {
         // TODO: deal with \r
         if codepoint == '\n' {

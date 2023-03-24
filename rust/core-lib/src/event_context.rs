@@ -48,6 +48,7 @@ use crate::tabs::{
 };
 use crate::view::View;
 use crate::width_cache::WidthCache;
+use crate::word_boundaries::{get_word_property, WordCursor, WordProperty};
 use crate::WeakXiCore;
 
 // Maximum returned result from plugin get_data RPC.
@@ -709,10 +710,44 @@ impl<'a> EventContext<'a> {
         }
     }
 
-    fn do_show_completions(&mut self, request_id: usize, completions: Result<Completions, RemoteError>) {
+    fn do_show_completions(
+        &mut self,
+        request_id: usize,
+        completions: Result<Completions, RemoteError>,
+    ) {
         match completions {
             Ok(completions) => {
-                self.client.show_completions(self.view_id, request_id, completions.content)
+                let editor = self.editor.borrow();
+                let view = self.view.borrow();
+                let text = editor.get_buffer();
+                let offset = view.get_caret_offset().unwrap_or(0);
+                let mut word_cursor = WordCursor::new(text, offset);
+
+                // Get previous char
+                let mut char = 'A';
+                if offset > 0 {
+                    char = char::from_u32(text.byte_at(offset - 1) as u32).unwrap_or('A');
+                }
+
+                match get_word_property(char) {
+                    WordProperty::Lf | WordProperty::Space | WordProperty::Punctuation => {
+                        // Not a letter, display all completions
+                        self.client.show_completions(self.view_id, request_id, completions.content)
+                    }
+                    WordProperty::Other => {
+                        // Filter completions
+                        let left_offset = word_cursor.prev_boundary().unwrap_or(0);
+                        let right_offset = word_cursor.next_boundary().unwrap_or(0);
+                        let filter =
+                            editor.get_buffer().slice(left_offset..right_offset).to_string();
+                        let completions = completions
+                            .content
+                            .into_iter()
+                            .filter(|s| s.starts_with(&filter))
+                            .collect::<Vec<_>>();
+                        self.client.show_completions(self.view_id, request_id, completions)
+                    }
+                }
             }
             Err(err) => warn!("Completions Response from Client Error {:?}", err),
         }

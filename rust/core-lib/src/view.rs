@@ -57,13 +57,14 @@ pub struct View {
     /// after an edit is applied, to allow batching with any plugin updates.
     pending_render: bool,
     size: Size,
+
     /// The selection state for this view. Invariant: non-empty.
     selection: Selection,
-
     drag_state: Option<DragState>,
 
     /// vertical scroll position
     first_line: usize,
+
     /// height of visible portion
     height: usize,
     lines: Lines,
