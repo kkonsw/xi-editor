@@ -384,6 +384,9 @@ pub enum EditNotification {
     Insert {
         chars: String,
     },
+    InsertCompletion {
+        chars: String,
+    },
     Paste {
         chars: String,
     },

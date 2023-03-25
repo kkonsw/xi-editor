@@ -39,6 +39,7 @@ use crate::rpc::SelectionModifier;
 use crate::selection::{InsertDrift, SelRegion, Selection};
 use crate::styles::ThemeStyleMap;
 use crate::view::{Replace, View};
+use crate::word_boundaries::{get_word_property, WordCursor, WordProperty};
 
 #[cfg(not(feature = "ledger"))]
 pub struct SyncStore;
@@ -355,6 +356,45 @@ impl Editor {
         }
     }
 
+    fn find_difference(string: &str, filter: &str) -> String {
+        string.replace(filter, "")
+    }
+
+    fn do_insert_completion(&mut self, view: &View, config: &BufferItems, chars: &str) {
+        let pair_search = config.surrounding_pairs.iter().find(|pair| pair.0 == chars);
+        let caret_exists = view.sel_regions().iter().any(|region| region.is_caret());
+        if let (Some(_pair), false) = (pair_search, caret_exists) {
+            // Not sure what to do here, investigate
+        } else {
+            // Insert completion at the current cursor
+            self.this_edit_type = EditType::InsertChars;
+            let text = self.get_buffer();
+            let offset = view.get_caret_offset().unwrap_or(0);
+            let mut word_cursor = WordCursor::new(text, offset);
+
+            // Get previous char
+            let mut char = 'A';
+            if offset > 0 {
+                char = char::from_u32(text.byte_at(offset - 1) as u32).unwrap_or('A');
+            }
+
+            match get_word_property(char) {
+                WordProperty::Lf | WordProperty::Space | WordProperty::Punctuation => {
+                    // Not a letter, insert full completion
+                    self.add_delta(edit_ops::insert(&self.text, view.sel_regions(), chars));
+                }
+                WordProperty::Other => {
+                    // Insert difference between current word and completion
+                    let left_offset = word_cursor.prev_boundary().unwrap_or(0);
+                    let right_offset = word_cursor.next_boundary().unwrap_or(0);
+                    let filter = self.get_buffer().slice(left_offset..right_offset).to_string();
+                    let completion = Self::find_difference(chars, &filter);
+                    self.add_delta(edit_ops::insert(&self.text, view.sel_regions(), completion));
+                }
+            }
+        }
+    }
+
     fn do_paste(&mut self, view: &View, chars: &str) {
         if view.sel_regions().len() == 1 || view.sel_regions().len() != count_lines(chars) {
             self.add_delta(edit_ops::insert(&self.text, view.sel_regions(), chars));
@@ -574,6 +614,7 @@ impl Editor {
             InsertNewline => self.do_insert_newline(view, config),
             InsertTab => self.do_insert_tab(view, config),
             Insert(chars) => self.do_insert(view, config, &chars),
+            InsertCompletion(chars) => self.do_insert_completion(view, config, &chars),
             Paste(chars) => self.do_paste(view, &chars),
             Yank => self.do_yank(view, kill_ring),
             ReplaceNext => self.do_replace(view, false),

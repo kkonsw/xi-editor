@@ -65,6 +65,7 @@ pub(crate) enum BufferEvent {
     Indent,
     Outdent,
     Insert(String),
+    InsertCompletion(String),
     Paste(String),
     InsertNewline,
     InsertTab,
@@ -125,6 +126,8 @@ impl From<EditNotification> for EventDomain {
         match src {
             Insert { chars } =>
                 BufferEvent::Insert(chars).into(),
+            InsertCompletion { chars } =>
+                BufferEvent::InsertCompletion(chars).into(),
             Paste { chars } =>
                 BufferEvent::Paste(chars).into(),
             DeleteForward =>
