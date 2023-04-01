@@ -160,6 +160,16 @@ impl Plugin {
         )
     }
 
+    pub fn get_diagnostics(&self, view_id: ViewId, request_id: usize) {
+        self.peer.send_rpc_notification(
+            "get_diagnostics",
+            &json!({
+                "view_id": view_id,
+                "request_id": request_id,
+            }),
+        )
+    }
+
     pub fn dispatch_command(&self, view_id: ViewId, method: &str, params: &Value) {
         self.peer.send_rpc_notification(
             "custom_command",

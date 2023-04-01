@@ -25,7 +25,7 @@ use xi_plugin_lib::CoreProxy;
 
 use crate::lsp_types::*;
 use crate::result_queue::ResultQueue;
-use crate::types::Callback;
+use crate::types::{Callback, LanguageResponseError};
 use crate::xi_core::ViewId;
 
 /// A type to abstract communication with the language server
@@ -84,7 +84,6 @@ impl LanguageServerClient {
 
     pub fn write(&mut self, msg: &str) {
         self.writer.write_all(msg.as_bytes()).expect("error writing to stdin");
-
         self.writer.flush().expect("error flushing child stdin");
     }
 
@@ -121,7 +120,31 @@ impl LanguageServerClient {
         match method {
             "window/showMessage" => {}
             "window/logMessage" => {}
-            "textDocument/publishDiagnostics" => {}
+            "textDocument/publishDiagnostics" => {
+                info!("Received diagnostics");
+
+                let params_json: Value = match params {
+                    Params::Array(arr) => serde_json::Value::Array(arr),
+                    Params::Map(map) => serde_json::Value::Object(map),
+                    Params::None(_) => todo!(),
+                };
+
+                let diagnostics: Option<PublishDiagnosticsParams> =
+                    serde_json::from_value(params_json).unwrap();
+                let result = diagnostics.ok_or(LanguageResponseError::NullResponse);
+
+                if let Ok(diagnostics) = result {
+                    dbg!(diagnostics);
+                } else {
+                    warn!("Failed to parse diagnostics from json");
+                }
+
+                //
+                // ls_client
+                //     .result_queue
+                //     .push_result(request_id, LspResponse::DiagnosticsResponse(res));
+                // ls_client.core.schedule_idle(view_id);
+            }
             "telemetry/event" => {}
             _ => self.handle_misc_notification(method, params),
         }
@@ -295,6 +318,14 @@ impl LanguageServerClient {
         let params = Params::from(serde_json::to_value(text_document_position_params).unwrap());
         self.send_request("textDocument/completion", params, Box::new(on_result))
     }
+
+    pub fn request_diagnostics<CB>(&mut self, _view_id: ViewId, _on_result: CB)
+    where
+        CB: 'static + Send + FnOnce(&mut LanguageServerClient, Result<Value, Error>),
+    {
+        // It is not required to request diagnostics from the LSP
+        // LSP sends diagnostics with each didChange and didSave event
+    }
 }
 
 /// Helper methods to query the capabilities of the Language Server before making
@@ -351,7 +382,7 @@ impl LanguageServerClient {
                     _ => warn!("Unexpected type"),
                 }
             }
-            _ => warn!("Unknown Notification from RLS: {} ", method),
+            _ => warn!("Unknown Notification from RLS: {}", method),
         }
     }
 }

@@ -513,6 +513,9 @@ pub enum EditNotification {
         request_id: usize,
         position: Option<Position>,
     },
+    RequestDiagnostics {
+        request_id: usize,
+    },
     SelectionIntoLines,
     DuplicateLine,
     IncreaseNumber,

@@ -215,6 +215,27 @@ impl Plugin for LspPlugin {
         });
     }
 
+    fn get_diagnostics(&mut self, view: &mut View<Self::Cache>, request_id: usize) {
+        let view_id = view.get_id();
+
+        self.with_language_server_for_view(view, |ls_client| {
+            ls_client.request_diagnostics(view_id, move |ls_client, result| {
+                let res = result
+                    .map_err(|e| LanguageResponseError::LanguageServerError(format!("{:?}", e)))
+                    .and_then(|h| {
+                        let diagnostics: Option<PublishDiagnosticsParams> =
+                            serde_json::from_value(h).unwrap();
+                        diagnostics.ok_or(LanguageResponseError::NullResponse)
+                    });
+
+                ls_client
+                    .result_queue
+                    .push_result(request_id, LspResponse::DiagnosticsResponse(res));
+                ls_client.core.schedule_idle(view_id);
+            })
+        });
+    }
+
     fn idle(&mut self, view: &mut View<Self::Cache>) {
         let result = self.result_queue.pop_result();
         if let Some((request_id, response)) = result {
@@ -233,6 +254,9 @@ impl Plugin for LspPlugin {
                     self.with_language_server_for_view(view, |ls_client| {
                         ls_client.core.show_completions(view.get_id(), request_id, &res)
                     });
+                }
+                LspResponse::DiagnosticsResponse(res) => {
+                    todo!();
                 }
             }
         }

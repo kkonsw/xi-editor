@@ -197,6 +197,9 @@ pub trait Plugin {
         position: usize,
     ) {
     }
+
+    #[allow(unused_variables)]
+    fn get_diagnostics(&mut self, view: &mut View<Self::Cache>, request_id: usize) {}
 }
 
 #[derive(Debug)]

@@ -146,6 +146,11 @@ impl<'a, P: 'a + Plugin> Dispatcher<'a, P> {
         self.plugin.get_completions(v, request_id, position)
     }
 
+    fn do_get_diagnostics(&mut self, view_id: ViewId, request_id: usize) {
+        let v = bail!(self.views.get_mut(&view_id), "get_diagnostics", self.pid, view_id);
+        self.plugin.get_diagnostics(v, request_id);
+    }
+
     fn do_tracing_config(&mut self, enabled: bool) {
         if enabled {
             xi_trace::enable_tracing();
@@ -213,6 +218,9 @@ impl<'a, P: Plugin> RpcHandler for Dispatcher<'a, P> {
             }
             GetCompletions { view_id, request_id, position } => {
                 self.do_get_completions(view_id, request_id, position)
+            }
+            GetDiagnostics  { view_id, request_id,} => {
+                self.do_get_diagnostics(view_id, request_id)
             }
             LanguageChanged { view_id, new_lang } => self.do_language_changed(view_id, new_lang),
             CustomCommand { view_id, method, params } => {

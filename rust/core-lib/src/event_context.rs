@@ -216,6 +216,9 @@ impl<'a> EventContext<'a> {
             SpecialEvent::RequestCompletions { request_id, position } => {
                 self.do_request_completions(request_id, position)
             }
+            SpecialEvent::RequestDiagnostics { request_id } => {
+                self.do_request_diagnostics(request_id)
+            }
         }
     }
 
@@ -698,6 +701,10 @@ impl<'a> EventContext<'a> {
         if let Some(position) = self.get_resolved_position(position) {
             self.with_each_plugin(|p| p.get_completions(self.view_id, request_id, position))
         }
+    }
+
+    fn do_request_diagnostics(&mut self, request_id: usize) {
+        self.with_each_plugin(|p| p.get_diagnostics(self.view_id, request_id))
     }
 
     fn do_show_hover(&mut self, request_id: usize, hover: Result<Hover, RemoteError>) {

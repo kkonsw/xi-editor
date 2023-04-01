@@ -112,6 +112,7 @@ pub enum HostNotification {
     DidClose { view_id: ViewId },
     GetHover { view_id: ViewId, request_id: usize, position: usize },
     GetCompletions { view_id: ViewId, request_id: usize, position: usize },
+    GetDiagnostics { view_id: ViewId, request_id: usize },
     Shutdown(EmptyStruct),
     TracingConfig { enabled: bool },
     LanguageChanged { view_id: ViewId, new_lang: LanguageId },
