@@ -16,7 +16,7 @@
 use crate::xi_core::plugin_rpc::Hover;
 use crate::xi_core::plugins::PluginId;
 use crate::xi_core::ViewId;
-use xi_core_lib::plugin_rpc::Completions;
+use xi_core_lib::plugin_rpc::{Completions, Diagnostics};
 use xi_rpc::{RemoteError, RpcCtx, RpcPeer};
 
 #[derive(Clone)]
@@ -93,6 +93,22 @@ impl CoreProxy {
         });
 
         self.peer.send_rpc_notification("show_completions", &params);
+    }
+
+    pub fn show_diagnostics(
+        &mut self,
+        view_id: ViewId,
+        request_id: usize,
+        result: &Result<Diagnostics, RemoteError>,
+    ) {
+        let params = json!({
+            "plugin_id": self.plugin_id,
+            "request_id": request_id,
+            "result": result,
+            "view_id": view_id
+        });
+
+        self.peer.send_rpc_notification("show_diagnostics", &params);
     }
 
     pub fn schedule_idle(&mut self, view_id: ViewId) {

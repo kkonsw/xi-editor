@@ -26,7 +26,7 @@ use xi_rope::{Cursor, Interval, LinesMetric, Rope, RopeDelta};
 use xi_rpc::{Error as RpcError, RemoteError};
 use xi_trace::trace_block;
 
-use crate::plugin_rpc::Completions;
+use crate::plugin_rpc::{Completions, Diagnostics};
 use crate::plugins::rpc::{
     ClientPluginInfo, Hover, PluginBufferInfo, PluginNotification, PluginRequest, PluginUpdate,
 };
@@ -261,6 +261,7 @@ impl<'a> EventContext<'a> {
             RemoveStatusItem { key } => self.client.remove_status_item(self.view_id, &key),
             ShowHover { request_id, result } => self.do_show_hover(request_id, result),
             ShowCompletions { request_id, result } => self.do_show_completions(request_id, result),
+            ShowDiagnostics { request_id, result } => self.do_show_diagnostics(request_id, result),
         };
         self.after_edit(&plugin.to_string());
         self.render_if_needed();
@@ -757,6 +758,17 @@ impl<'a> EventContext<'a> {
                 }
             }
             Err(err) => warn!("Completions Response from Client Error {:?}", err),
+        }
+    }
+
+    fn do_show_diagnostics(
+        &mut self,
+        request_id: usize,
+        diagnostics: Result<Diagnostics, RemoteError>,
+    ) {
+        match diagnostics {
+            Ok(diagnostics) => self.client.show_diagnostics(self.view_id, request_id, diagnostics),
+            Err(err) => warn!("Diagnostics Response from Client Error {:?}", err),
         }
     }
 

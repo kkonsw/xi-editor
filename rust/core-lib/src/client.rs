@@ -20,6 +20,7 @@ use serde_json::{self, Value};
 use xi_rpc::{self, RpcPeer};
 
 use crate::config::Table;
+use crate::plugin_rpc::Diagnostics;
 use crate::plugins::rpc::ClientPluginInfo;
 use crate::plugins::Command;
 use crate::styles::ThemeSettings;
@@ -231,6 +232,17 @@ impl Client {
     pub fn show_completions(&self, view_id: ViewId, request_id: usize, result: Vec<String>) {
         self.0.send_rpc_notification(
             "show_completions",
+            &json!({
+                "view_id": view_id,
+                "request_id": request_id,
+                "result": result,
+            }),
+        )
+    }
+
+    pub fn show_diagnostics(&self, view_id: ViewId, request_id: usize, result: Diagnostics) {
+        self.0.send_rpc_notification(
+            "show_diagnostics",
             &json!({
                 "view_id": view_id,
                 "request_id": request_id,

@@ -357,7 +357,7 @@ impl CoreState {
         if let Some(mut edit_ctx) = self.make_context(view_id) {
             edit_ctx.do_edit_sync(cmd)
         } else {
-            // TODO: some custom error tpye that can Into<RemoteError>
+            // TODO: some custom error type that can Into<RemoteError>
             Err(RemoteError::custom(404, format!("missing view {:?}", view_id), None))
         }
     }
@@ -443,8 +443,7 @@ impl CoreState {
     }
 
     fn do_set_theme(&self, theme_name: &str) {
-        //Set only if requested theme is different from the
-        //current one.
+        // Set only if requested theme is different from the current one.
         if theme_name != self.style_map.borrow().get_theme_name() {
             if let Err(e) = self.style_map.borrow_mut().set_theme(theme_name) {
                 error!("error setting theme: {:?}, {:?}", theme_name, e);

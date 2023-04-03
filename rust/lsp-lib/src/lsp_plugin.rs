@@ -256,7 +256,12 @@ impl Plugin for LspPlugin {
                     });
                 }
                 LspResponse::DiagnosticsResponse(res) => {
-                    todo!();
+                    let res = res
+                        .and_then(|h| core_diagnostics_from_diagnostics(view, h))
+                        .map_err(|e| e.into());
+                    self.with_language_server_for_view(view, |ls_client| {
+                        ls_client.core.show_diagnostics(view.get_id(), request_id, &res)
+                    });
                 }
             }
         }

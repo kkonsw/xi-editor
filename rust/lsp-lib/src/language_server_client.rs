@@ -25,7 +25,7 @@ use xi_plugin_lib::CoreProxy;
 
 use crate::lsp_types::*;
 use crate::result_queue::ResultQueue;
-use crate::types::{Callback, LanguageResponseError};
+use crate::types::{Callback, LanguageResponseError, LspResponse};
 use crate::xi_core::ViewId;
 
 /// A type to abstract communication with the language server
@@ -121,8 +121,6 @@ impl LanguageServerClient {
             "window/showMessage" => {}
             "window/logMessage" => {}
             "textDocument/publishDiagnostics" => {
-                info!("Received diagnostics");
-
                 let params_json: Value = match params {
                     Params::Array(arr) => serde_json::Value::Array(arr),
                     Params::Map(map) => serde_json::Value::Object(map),
@@ -134,16 +132,19 @@ impl LanguageServerClient {
                 let result = diagnostics.ok_or(LanguageResponseError::NullResponse);
 
                 if let Ok(diagnostics) = result {
-                    dbg!(diagnostics);
+                    // Search opened documents for view id
+                    for (view_id, uri) in self.opened_documents.iter() {
+                        if *uri == diagnostics.uri {
+                            // No request id, just send any value
+                            self.result_queue
+                                .push_result(0, LspResponse::DiagnosticsResponse(Ok(diagnostics)));
+                            self.core.schedule_idle(*view_id);
+                            break;
+                        }
+                    }
                 } else {
                     warn!("Failed to parse diagnostics from json");
                 }
-
-                //
-                // ls_client
-                //     .result_queue
-                //     .push_result(request_id, LspResponse::DiagnosticsResponse(res));
-                // ls_client.core.schedule_idle(view_id);
             }
             "telemetry/event" => {}
             _ => self.handle_misc_notification(method, params),

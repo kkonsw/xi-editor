@@ -24,6 +24,7 @@ use serde_json::{self, Value};
 use super::PluginPid;
 use crate::annotations::AnnotationType;
 use crate::config::Table;
+use crate::rpc::Position;
 use crate::syntax::LanguageId;
 use crate::tabs::{BufferIdentifier, ViewId};
 use xi_rope::{LinesMetric, Rope, RopeDelta};
@@ -224,6 +225,10 @@ pub enum PluginNotification {
         request_id: usize,
         result: Result<Completions, RemoteError>,
     },
+    ShowDiagnostics {
+        request_id: usize,
+        result: Result<Diagnostics, RemoteError>,
+    },
     UpdateAnnotations {
         start: usize,
         len: usize,
@@ -238,8 +243,8 @@ pub enum PluginNotification {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub struct Range {
-    pub start: usize,
-    pub end: usize,
+    pub start: Position,
+    pub end: Position,
 }
 
 /// Hover Item sent from Plugin to Core
@@ -254,6 +259,23 @@ pub struct Hover {
 #[serde(rename_all = "snake_case")]
 pub struct Completions {
     pub content: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
+pub struct Diagnostic {
+    pub message: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub severity: Option<usize>,
+
+    pub range: Range,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
+pub struct Diagnostics {
+    pub diagnostics: Vec<Diagnostic>,
 }
 
 /// Common wrapper for plugin-originating RPCs.
