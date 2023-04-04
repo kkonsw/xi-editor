@@ -68,28 +68,39 @@ impl FileManager {
     }
 
     fn parse_workspace_files() -> Vec<FileInfo> {
+        // TODO: consider .gitignore
         // Get workspace path from environment variable or use the current path
         let workspace_path = env::var("XI_WORKSPACE").unwrap_or_else(|_| ".".to_string());
         let workspace_dir = PathBuf::from(workspace_path);
         let mut workspace_files: Vec<FileInfo> = Vec::new();
 
-        // Loop through the files in the workspace directory
-        if let Ok(entries) = read_dir(&workspace_dir) {
-            for entry in entries.flatten() {
-                // Create a FileInfo struct for the file
-                let file_info = FileInfo {
-                    encoding: CharacterEncoding::Utf8, // Replace with actual encoding detection logic
-                    path: entry.path(),
-                    mod_time: None,
-                    has_changed: false,
-                    permissions: None,
-                };
-
-                workspace_files.push(file_info);
-            }
-        }
+        // Call the recursive helper function to get all files in the workspace directory
+        FileManager::get_files_recursive(&workspace_dir, &mut workspace_files);
 
         workspace_files
+    }
+
+    fn get_files_recursive(dir: &Path, files: &mut Vec<FileInfo>) {
+        if let Ok(entries) = read_dir(dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() {
+                    // We only care about the path here
+                    let file_info = FileInfo {
+                        encoding: CharacterEncoding::Utf8, // Replace with actual encoding detection logic
+                        path: path.to_path_buf(),
+                        mod_time: None,
+                        has_changed: false,
+                        permissions: None,
+                    };
+
+                    files.push(file_info);
+                } else if path.is_dir() {
+                    // Recurse into subdirectory
+                    FileManager::get_files_recursive(&path, files);
+                }
+            }
+        }
     }
 
     #[cfg(not(feature = "notify"))]
@@ -335,31 +346,27 @@ mod tests {
 
     #[test]
     fn test_parse_workspace_files() {
-        // Set up a temporary workspace directory with some test files
-        let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");
-        let test_file1 = temp_dir.path().join("test1.txt");
-        let test_file2 = temp_dir.path().join("test2.txt");
-        std::fs::write(&test_file1, "Hello, world!").expect("Failed to write test file 1");
-        std::fs::write(&test_file2, "こんにちは、世界！").expect("Failed to write test file 2");
+        // Create a temporary directory and some files to test with
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file1_path = temp_dir.path().join("file1.txt");
+        let file2_path = temp_dir.path().join("file2.txt");
+        let subdir_path = temp_dir.path().join("subdir");
+        let subfile_path = subdir_path.join("subfile.txt");
+        fs::create_dir(&subdir_path).unwrap();
+        fs::write(&file1_path, "file1 contents").unwrap();
+        fs::write(&file2_path, "file2 contents").unwrap();
+        fs::write(&subfile_path, "subfile contents").unwrap();
 
         // Set the XI_WORKSPACE environment variable to the temporary directory
-        std::env::set_var("XI_WORKSPACE", temp_dir.path());
+        env::set_var("XI_WORKSPACE", temp_dir.path());
 
-        // Call the parse_workspace_files function
+        // Call the parse_workspace_files() function
         let files = FileManager::parse_workspace_files();
 
-        // Check that the function returned the expected number of files
-        assert_eq!(files.len(), 2);
-
-        // Check that the FileInfo objects have the expected paths and encoding
-        let binding = [test_file1, test_file2];
-        let expected_files: std::collections::HashSet<&PathBuf> = binding.iter().collect();
-        for file in &files {
-            assert!(expected_files.contains(&file.path));
-            assert_eq!(file.encoding, CharacterEncoding::Utf8);
-        }
-
-        // Clean up the temporary directory
-        temp_dir.close().expect("Failed to clean up temporary directory");
+        // Check that all files were found, including those in subdirectories
+        assert_eq!(files.len(), 3);
+        assert!(files.iter().any(|f| f.path == file1_path));
+        assert!(files.iter().any(|f| f.path == file2_path));
+        assert!(files.iter().any(|f| f.path == subfile_path));
     }
 }
