@@ -219,9 +219,6 @@ impl<'a> EventContext<'a> {
             SpecialEvent::RequestDiagnostics { request_id } => {
                 self.do_request_diagnostics(request_id)
             }
-            SpecialEvent::RequestFiles => {
-                todo!();
-            }
         }
     }
 

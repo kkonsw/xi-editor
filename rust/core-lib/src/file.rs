@@ -201,6 +201,10 @@ impl FileManager {
         }
         Ok(())
     }
+
+    pub fn workspace_files(&self) -> &[FileInfo] {
+        self.workspace_files.as_ref()
+    }
 }
 
 fn try_load_file<P>(path: P) -> Result<(Rope, FileInfo), FileError>

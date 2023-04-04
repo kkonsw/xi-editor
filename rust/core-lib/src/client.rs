@@ -251,6 +251,16 @@ impl Client {
         )
     }
 
+    pub fn show_files(&self, view_id: ViewId, result: Vec<String>) {
+        self.0.send_rpc_notification(
+            "show_files",
+            &json!({
+                "view_id": view_id,
+                "result": result,
+            }),
+        )
+    }
+
     pub fn schedule_idle(&self, token: usize) {
         self.0.schedule_idle(token)
     }

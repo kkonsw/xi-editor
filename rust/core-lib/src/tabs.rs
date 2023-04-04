@@ -39,7 +39,7 @@ use crate::client::Client;
 use crate::config::{self, ConfigDomain, ConfigDomainExternal, ConfigManager, Table};
 use crate::editor::Editor;
 use crate::event_context::EventContext;
-use crate::file::FileManager;
+use crate::file::{FileInfo, FileManager};
 use crate::line_ending::LineEnding;
 use crate::plugin_rpc::{PluginNotification, PluginRequest};
 use crate::plugins::rpc::ClientPluginInfo;
@@ -185,6 +185,10 @@ impl CoreState {
             plugins: PluginCatalog::default(),
             running_plugins: Vec::new(),
         }
+    }
+
+    pub fn get_workspace_files(&self) -> &[FileInfo] {
+        self.file_manager.workspace_files()
     }
 
     fn next_view_id(&self) -> ViewId {
@@ -348,7 +352,14 @@ impl CoreState {
     }
 
     fn do_edit(&mut self, view_id: ViewId, cmd: EditNotification) {
-        if let Some(mut edit_ctx) = self.make_context(view_id) {
+        if let EditNotification::RequestFiles = cmd {
+            // Send workspace files back to client
+            let files = self.file_manager.workspace_files();
+            self.peer.show_files(
+                view_id,
+                files.iter().filter_map(|f| f.path.to_str().map(|path| path.to_string())).collect(),
+            );
+        } else if let Some(mut edit_ctx) = self.make_context(view_id) {
             edit_ctx.do_edit(cmd);
         }
     }
