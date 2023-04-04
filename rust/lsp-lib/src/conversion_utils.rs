@@ -19,8 +19,9 @@ use crate::lsp_types::*;
 use crate::types::LanguageResponseError;
 use xi_core::rpc::Position as CorePosition;
 use xi_plugin_lib::{
-    Cache, Completions as CoreCompletions, Error as PluginLibError, Hover as CoreHover,
-    Range as CoreRange, View, Diagnostic as CoreDiagnostic, Diagnostics as CoreDiagnostics
+    Cache, Completions as CoreCompletions, Diagnostic as CoreDiagnostic,
+    Diagnostics as CoreDiagnostics, Error as PluginLibError, Hover as CoreHover,
+    Range as CoreRange, View,
 };
 
 pub(crate) fn marked_string_to_string(marked_string: &MarkedString) -> String {
@@ -75,6 +76,7 @@ pub(crate) fn get_position_of_offset<C: Cache>(
     Ok(Position { line: line_num as u64, character: char_offset as u64 })
 }
 
+#[allow(dead_code)]
 pub(crate) fn offset_of_position<C: Cache>(
     view: &mut View<C>,
     position: Position,
@@ -96,7 +98,7 @@ pub(crate) fn offset_of_position<C: Cache>(
 }
 
 pub(crate) fn core_range_from_range<C: Cache>(
-    view: &mut View<C>,
+    _view: &mut View<C>,
     range: Range,
 ) -> Result<CoreRange, PluginLibError> {
     Ok(CoreRange {
@@ -138,8 +140,11 @@ pub(crate) fn core_diagnostics_from_diagnostics<C: Cache>(
     params: PublishDiagnosticsParams,
 ) -> Result<CoreDiagnostics, LanguageResponseError> {
     Ok(CoreDiagnostics {
-        diagnostics: params.diagnostics.into_iter().map(|d| CoreDiagnostic {
-            message: d.message,
+        diagnostics: params
+            .diagnostics
+            .into_iter()
+            .map(|d| CoreDiagnostic {
+                message: d.message,
                 severity: d.severity.map(|severity| severity as usize),
                 range: CoreRange {
                     start: CorePosition {
@@ -149,8 +154,9 @@ pub(crate) fn core_diagnostics_from_diagnostics<C: Cache>(
                     end: CorePosition {
                         line: d.range.end.line as usize,
                         column: d.range.end.character as usize,
-                    }
-                }
-        }).collect()
+                    },
+                },
+            })
+            .collect(),
     })
 }

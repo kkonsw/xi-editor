@@ -219,9 +219,7 @@ impl<'a, P: Plugin> RpcHandler for Dispatcher<'a, P> {
             GetCompletions { view_id, request_id, position } => {
                 self.do_get_completions(view_id, request_id, position)
             }
-            GetDiagnostics  { view_id, request_id,} => {
-                self.do_get_diagnostics(view_id, request_id)
-            }
+            GetDiagnostics { view_id, request_id } => self.do_get_diagnostics(view_id, request_id),
             LanguageChanged { view_id, new_lang } => self.do_language_changed(view_id, new_lang),
             CustomCommand { view_id, method, params } => {
                 self.do_custom_command(view_id, &method, params)
