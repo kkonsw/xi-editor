@@ -1,22 +1,8 @@
-// Copyright 2018 The xi-editor Authors.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-//! Interactions with the file system.
-
 use std::collections::HashMap;
+use std::env;
 use std::ffi::OsString;
 use std::fmt;
+use std::fs::read_dir;
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
@@ -37,10 +23,12 @@ use std::{fs::Permissions, os::unix::fs::PermissionsExt};
 
 const UTF8_BOM: &str = "\u{feff}";
 
-/// Tracks all state related to open files.
+/// Tracks state related to workspace and open files.
 pub struct FileManager {
     open_files: HashMap<PathBuf, BufferId>,
     file_info: HashMap<BufferId, FileInfo>,
+    workspace_files: Vec<FileInfo>,
+
     /// A monitor of filesystem events, for things like reloading changed files.
     #[cfg(feature = "notify")]
     watcher: FileWatcher,
@@ -62,7 +50,7 @@ pub enum FileError {
     HasChanged(PathBuf),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CharacterEncoding {
     Utf8,
     Utf8WithBom,
@@ -71,7 +59,37 @@ pub enum CharacterEncoding {
 impl FileManager {
     #[cfg(feature = "notify")]
     pub fn new(watcher: FileWatcher) -> Self {
-        FileManager { open_files: HashMap::new(), file_info: HashMap::new(), watcher }
+        FileManager {
+            open_files: HashMap::new(),
+            file_info: HashMap::new(),
+            workspace_files: Self::parse_workspace_files(),
+            watcher,
+        }
+    }
+
+    fn parse_workspace_files() -> Vec<FileInfo> {
+        // Get workspace path from environment variable or use the current path
+        let workspace_path = env::var("XI_WORKSPACE").unwrap_or_else(|_| ".".to_string());
+        let workspace_dir = PathBuf::from(workspace_path);
+        let mut workspace_files: Vec<FileInfo> = Vec::new();
+
+        // Loop through the files in the workspace directory
+        if let Ok(entries) = read_dir(&workspace_dir) {
+            for entry in entries.flatten() {
+                // Create a FileInfo struct for the file
+                let file_info = FileInfo {
+                    encoding: CharacterEncoding::Utf8, // Replace with actual encoding detection logic
+                    path: entry.path(),
+                    mod_time: None,
+                    has_changed: false,
+                    permissions: None,
+                };
+
+                workspace_files.push(file_info);
+            }
+        }
+
+        workspace_files
     }
 
     #[cfg(not(feature = "notify"))]
@@ -308,5 +326,40 @@ impl fmt::Display for FileError {
                 p
             ),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_workspace_files() {
+        // Set up a temporary workspace directory with some test files
+        let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");
+        let test_file1 = temp_dir.path().join("test1.txt");
+        let test_file2 = temp_dir.path().join("test2.txt");
+        std::fs::write(&test_file1, "Hello, world!").expect("Failed to write test file 1");
+        std::fs::write(&test_file2, "こんにちは、世界！").expect("Failed to write test file 2");
+
+        // Set the XI_WORKSPACE environment variable to the temporary directory
+        std::env::set_var("XI_WORKSPACE", temp_dir.path());
+
+        // Call the parse_workspace_files function
+        let files = FileManager::parse_workspace_files();
+
+        // Check that the function returned the expected number of files
+        assert_eq!(files.len(), 2);
+
+        // Check that the FileInfo objects have the expected paths and encoding
+        let binding = [test_file1, test_file2];
+        let expected_files: std::collections::HashSet<&PathBuf> = binding.iter().collect();
+        for file in &files {
+            assert!(expected_files.contains(&file.path));
+            assert_eq!(file.encoding, CharacterEncoding::Utf8);
+        }
+
+        // Clean up the temporary directory
+        temp_dir.close().expect("Failed to clean up temporary directory");
     }
 }

@@ -93,6 +93,7 @@ pub(crate) enum SpecialEvent {
     ToggleRecording(Option<String>),
     PlayRecording(String),
     ClearRecording(String),
+    RequestFiles,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -305,6 +306,7 @@ impl From<EditNotification> for EventDomain {
             CollapseSelections => ViewEvent::CollapseSelections.into(),
             RequestCompletions { request_id, position } => SpecialEvent::RequestCompletions { request_id, position }.into(),
             RequestDiagnostics { request_id, } => SpecialEvent::RequestDiagnostics { request_id, }.into(),
+            RequestFiles => SpecialEvent::RequestFiles.into(),
         }
     }
 }

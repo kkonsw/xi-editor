@@ -41,6 +41,7 @@ sha2 = "0.8"
 
 [dev-dependencies]
 tempdir = "^0.3.4"
+tempfile = "3.5.0"
 
 [features]
 ledger = []

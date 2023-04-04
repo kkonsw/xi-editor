@@ -530,6 +530,7 @@ pub enum EditNotification {
         recording_name: String,
     },
     CollapseSelections,
+    RequestFiles
 }
 
 /// The edit related requests.
