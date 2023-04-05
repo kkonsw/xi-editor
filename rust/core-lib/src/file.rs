@@ -105,7 +105,11 @@ impl FileManager {
 
     #[cfg(not(feature = "notify"))]
     pub fn new() -> Self {
-        FileManager { open_files: HashMap::new(), file_info: HashMap::new() }
+        FileManager {
+            open_files: HashMap::new(),
+            workspace_files: Self::parse_workspace_files(),
+            file_info: HashMap::new(),
+        }
     }
 
     #[cfg(feature = "notify")]
@@ -202,8 +206,19 @@ impl FileManager {
         Ok(())
     }
 
-    pub fn workspace_files(&self) -> &[FileInfo] {
-        self.workspace_files.as_ref()
+    pub fn workspace_files(&self) -> Vec<String> {
+        // Determine the workspace prefix
+        let workspace_prefix: PathBuf = match env::var("XI_WORKSPACE") {
+            Ok(workspace_dir) => PathBuf::from(workspace_dir),
+            Err(_) => std::env::current_dir().unwrap(),
+        };
+
+        // Keep relative pathes
+        self.workspace_files
+            .iter()
+            .filter_map(|f| f.path.strip_prefix(&workspace_prefix).ok())
+            .filter_map(|path| path.to_str().map(|path| path.to_string()))
+            .collect()
     }
 }
 
@@ -372,5 +387,33 @@ mod tests {
         assert!(files.iter().any(|f| f.path == file1_path));
         assert!(files.iter().any(|f| f.path == file2_path));
         assert!(files.iter().any(|f| f.path == subfile_path));
+    }
+
+    #[test]
+    #[cfg(not(feature = "notify"))]
+    fn test_workspace_files() {
+        // Set up a temporary workspace directory with some files
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file1_path = temp_dir.path().join("file1.txt");
+        let file2_path = temp_dir.path().join("file2.txt");
+        let subdir_path = temp_dir.path().join("subdir");
+        let subfile_path = subdir_path.join("subfile.txt");
+        fs::create_dir(&subdir_path).unwrap();
+        fs::write(file1_path, "file1 contents").unwrap();
+        fs::write(file2_path, "file2 contents").unwrap();
+        fs::write(subfile_path, "subfile contents").unwrap();
+
+        // Set the XI_WORKSPACE environment variable to the temporary workspace directory
+        env::set_var("XI_WORKSPACE", temp_dir.path());
+
+        // Call parse_workspace_files and check the result
+        let file_manager = FileManager::new();
+        let files = file_manager.workspace_files();
+
+        // Check that all files were found, including those in subdirectories
+        assert_eq!(files.len(), 3);
+        assert!(files.iter().any(|f| f == "file1.txt"));
+        assert!(files.iter().any(|f| f == "file2.txt"));
+        assert!(files.iter().any(|f| f == "subdir/subfile.txt"));
     }
 }

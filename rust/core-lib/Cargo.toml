@@ -45,4 +45,4 @@ tempfile = "3.5.0"
 
 [features]
 ledger = []
-default = ["notify"]
+default = []
